@@ -1,0 +1,4 @@
+PORT = 5050
+ADDRESS = "localhost"
+HEADER_LENGTH = 64
+FORMAT = "utf-8"
