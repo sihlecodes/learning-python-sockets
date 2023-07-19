@@ -6,12 +6,13 @@ server.bind((constants.ADDRESS, constants.PORT))
 
 try:
     server.listen()
-    connection, address = server.accept()
 
-    print(address)
-    print(connection)
+    while True:
+        connection, address = server.accept()
 
-    connection.send(b"Hello world!")
+        print("NEW CONNECTION:", address)
+
+        connection.send(b"Hello world!")
 
 finally:
     connection.close()
