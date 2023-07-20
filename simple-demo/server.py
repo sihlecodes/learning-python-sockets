@@ -13,7 +13,7 @@ try:
         print("NEW CONNECTION:", address)
 
         connection.send(b"Hello world!")
+        connection.close()
 
 finally:
-    connection.close()
     server.close()    
