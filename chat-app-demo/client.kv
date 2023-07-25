@@ -1,0 +1,23 @@
+<CustomLabel>:
+    height: 40
+    size_hint_y: None
+    text: "Hello, world!"
+
+<ClientUI>:
+    orientation: "vertical"
+
+    ScrollView:
+        id: scrollview
+        do_scroll_x: False
+        do_scroll_y: True
+
+        size_hint_y: 0.8
+
+        BoxLayout:
+            id: message_container
+            orientation: "vertical"
+            size_hint_y: None
+
+    Button:
+        text: "Save"
+        size_hint_y: 0.2
