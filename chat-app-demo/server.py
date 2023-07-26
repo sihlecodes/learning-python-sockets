@@ -9,7 +9,7 @@ def handle_client(connection, address, clients):
 
     while True:
         connection.send(b"Hello, world!")
-        time.sleep(5)
+        time.sleep(3)
 
         # message: str = utils.get_message(connection)
 

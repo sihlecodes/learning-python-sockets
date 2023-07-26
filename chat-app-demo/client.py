@@ -1,12 +1,8 @@
-from collections.abc import Callable, Iterable, Mapping
-from typing import Any
 from kivy.app import App
-from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
-from kivy.properties import ListProperty
-from kivy.event import EventDispatcher
 from kivy.clock import Clock
+from kivy.core.window import Window
 
 import socket
 import constants
@@ -23,8 +19,16 @@ class MessageHandler(threading.Thread):
         super().__init__(*args, **kwargs)
         self.connection = connection
 
+    def start(self):
+        super().start()
+        self.running = True
+    
+    def stop(self):
+        self.running = False
+        self.join()
+
     def run(self):
-        while True:
+        while self.running:
             try:
                 message = self.connection.recv(1024).decode(constants.FORMAT)
 
@@ -54,11 +58,16 @@ class ClientApp(App):
         super().__init__(*args, **kwargs)
         self.message_handler = MessageHandler(connection)
 
+    def _on_request_close(self, *args):
+        self.message_handler.stop()
+
     def build(self):
         ui = ClientUI()
 
         self.message_handler.callback = ui._on_new_message
         self.message_handler.start()
+
+        Window.bind(on_request_close=self._on_request_close)
 
         return ui 
 
