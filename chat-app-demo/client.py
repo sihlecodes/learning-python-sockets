@@ -8,36 +8,12 @@ import socket
 import constants
 import random
 import utils
+import time
 import threading
 
 
 class CustomLabel(Label):
     pass
-
-class MessageHandler(threading.Thread):
-    def __init__(self, connection, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.connection = connection
-
-    def start(self):
-        super().start()
-        self.running = True
-    
-    def stop(self):
-        self.running = False
-        self.join()
-
-    def run(self):
-        while self.running:
-            try:
-                message = self.connection.recv(1024).decode(constants.FORMAT)
-
-                if message and hasattr(self, "callback"):
-                    self.callback(message)
-
-            except Exception as e:
-                print("Broken connection: ", self.connection)
-                break
 
 class ClientUI(BoxLayout):
     def __init__(self, *args, **kwargs):
@@ -68,7 +44,6 @@ class ClientApp(App):
         self.message_handler.start()
 
         Window.bind(on_request_close=self._on_request_close)
-
         return ui 
 
 if __name__ == '__main__':
