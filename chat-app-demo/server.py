@@ -4,23 +4,44 @@ import constants
 import utils
 import time
 
-def handle_client(connection, address, clients):
-    print("[NEW CONNECTION]:", address)
+class ClientHandler(threading.Thread):
+    def __init__(self, client, clients):
+        super().__init__()
+        self.connection, self.address = client
+        self.clients = clients
 
-    while True:
-        connection.send(b"Hello, world!")
-        time.sleep(3)
+    def start(self):
+        self.running = True
+        super().start()
 
-        # message: str = utils.get_message(connection)
+    def stop(self):
+        self.running = False
+        self.join()
 
-        # for client in clients:
-        #     if client != connection:
-        #         client.send(utils.encode(message))
+    def run(self):
+        print("[NEW CONNECTION]:", self.address)
+
+        with self.connection:
+            while self.running:
+                self.connection.send(b"Hello, world!")
+                time.sleep(3)
+
+                # message: str = utils.get_message(self.connection)
+
+                # for client_connection, client_address in self.clients:
+                #     try:
+                #         if client_connection != self.connection:
+                #             client_connection.send(b"Hello, world!")#utils.encode(message))
+
+                #     except:
+                #         self.clients.remove(client)
+                #         print("[REMOVED CLIENT]:", client)
+
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((constants.ADDRESS, constants.PORT))
 
-threads: list = []
+client_handlers: list = []
 clients: list = []
 
 try:
@@ -28,15 +49,15 @@ try:
 
     while True:
         client: tuple = server.accept()
-        clients.append(client[0])
+        clients.append(client)
 
-        thread = threading.Thread(target=handle_client, args=(*client, clients))
-        thread.start()
+        handler = ClientHandler(client, clients)
+        handler.start()
 
-        threads.append(thread)
+        client_handlers.append(handler)
 
 finally:
     server.close()
     
-    # for thread in threads:
-    #     thread.join()
+    for handler in client_handlers:
+        handler.stop()
