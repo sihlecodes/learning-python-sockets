@@ -11,23 +11,16 @@ import utils
 import time
 import threading
 
+from messagehandler import MessageHandler
 
 class CustomLabel(Label):
     pass
 
 class ClientUI(BoxLayout):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        layout = self.ids.message_container
-        layout.bind(minimum_height = layout.setter("height"))
-
     def _on_new_message(self, message):
-        Clock.schedule_once(lambda x: self.add_message(message))
-    
-    def add_message(self, message):
-        label = CustomLabel(text=message)
-        self.ids.message_container.add_widget(label)
+        print("new message")
+        messages = self.ids.messages
+        messages.text += f"\n{message}" if messages.text else message
 
 class ClientApp(App):
     def __init__(self, connection, *args, **kwargs):
@@ -36,6 +29,9 @@ class ClientApp(App):
 
     def _on_request_close(self, *args):
         self.message_handler.stop()
+
+    def send(self, message):
+        self.message_handler.send(message)
 
     def build(self):
         ui = ClientUI()

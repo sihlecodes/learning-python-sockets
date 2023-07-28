@@ -23,15 +23,16 @@ class ClientHandler(threading.Thread):
 
         with self.connection:
             while self.running:
-                self.connection.send(b"Hello, world!")
-                time.sleep(3)
+                message: str = utils.get_message(self.connection)
+                self.connection.send(utils.encode(message))
+                print("sending")
 
                 # message: str = utils.get_message(self.connection)
 
                 # for client_connection, client_address in self.clients:
                 #     try:
                 #         if client_connection != self.connection:
-                #             client_connection.send(b"Hello, world!")#utils.encode(message))
+                #             client_connection.send(utils.encode(message))
 
                 #     except:
                 #         self.clients.remove(client)

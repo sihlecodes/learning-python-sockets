@@ -15,17 +15,20 @@ class MessageHandler(threading.Thread):
         self.running = False
         self.join()
 
+    def send(self, message):
+        self.connection.send(utils.encode(message))
+
     def run(self):
         while self.running:
             try:
-                message = self.connection.recv(1024).decode(constants.FORMAT)
+                message = utils.get_message(self.connection)
 
                 if message and hasattr(self, "callback"):
                     self.callback(message)
 
             except Exception as e:
                 print("Broken connection: ", self.connection)
-                break
+                self.stop()
 
 if __name__ == "__main__":
     import socket
