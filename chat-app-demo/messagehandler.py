@@ -13,6 +13,7 @@ class MessageHandler(threading.Thread):
     
     def stop(self):
         self.running = False
+        self.connection.send(b".quit")
         self.join()
 
     def send(self, message):

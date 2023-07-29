@@ -18,7 +18,6 @@ class CustomLabel(Label):
 
 class ClientUI(BoxLayout):
     def _on_new_message(self, message):
-        print("new message")
         messages = self.ids.messages
         messages.text += f"\n{message}" if messages.text else message
 
