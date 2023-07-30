@@ -25,7 +25,7 @@
         DebuggingLabel:
             id: messages
             padding: (5, 5)
-            size_hint_y: None
+            size_hint: None, None
             line_height: 1.4
             background_color: 0.5, 0.5, 0, 1
             halign: "left"
@@ -35,14 +35,17 @@
         orientation: "horizontal"
         size_hint_y: 1 - scrollview.size_hint_y
 
-        TextInput:
+        CustomTextInput:
             id: new_message
             # text: "Save"
             valign: "middle"
             multiline: False
             size_hint_x: 0.8
+            focus: True
+            on_text_validate: root._on_enter_pressed(*args)
 
         Button:
+            id: send
             text: "Send"
             size_hint_x: 0.2
-            on_press: app.send(new_message.text)
+            on_press: root._on_send_pressed(new_message.text)
