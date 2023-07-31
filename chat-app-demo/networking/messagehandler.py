@@ -1,5 +1,5 @@
-import constants
-import utils
+from . import constants, utils
+
 import threading
 
 class MessageHandler(threading.Thread):
@@ -10,19 +10,23 @@ class MessageHandler(threading.Thread):
     def start(self):
         self.running = True
         super().start()
-    
+
     def stop(self):
         self.running = False
-        self.connection.send(b".quit")
-        self.join()
+
+        try:
+            utils.send(self.connection, "quit", sender="default")
+        finally:
+            self.join()
 
     def send(self, message):
-        self.connection.send(utils.encode(message))
+        utils.send(self.connection, "global_message", sender="default", message=message)
 
     def run(self):
         while self.running:
             try:
-                message = utils.get_message(self.connection)
+                metadata = utils.receive(self.connection)
+                message = metadata.message if metadata else ""
 
                 if message and hasattr(self, "callback"):
                     self.callback(message)

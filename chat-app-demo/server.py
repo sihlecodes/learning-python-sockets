@@ -1,7 +1,7 @@
+from networking import utils, constants
+
 import socket
 import threading
-import constants
-import utils
 import time
 
 class ClientHandler(threading.Thread):
@@ -23,9 +23,12 @@ class ClientHandler(threading.Thread):
 
         with self.connection:
             while self.running:
-                message: str = utils.get_message(self.connection)
-                self.connection.send(utils.encode(message))
-                print("sending")
+                metadata = utils.receive(self.connection)
+                print(metadata)
+
+                if metadata:
+                    message: str = metadata.message
+                    utils.send(self.connection, "global_message", "default", message)
 
                 # message: str = utils.get_message(self.connection)
 
@@ -59,6 +62,6 @@ try:
 
 finally:
     server.close()
-    
+
     for handler in client_handlers:
         handler.stop()

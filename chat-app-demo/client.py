@@ -6,14 +6,13 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 
+from networking import constants
+from networking.messagehandler import MessageHandler
+
 import socket
-import constants
 import random
-import utils
 import time
 import threading
-
-from messagehandler import MessageHandler
 
 class CustomTextInput(TextInput):
     def _grab_focus(self, *args):
@@ -36,7 +35,7 @@ class ClientUI(BoxLayout):
         self.ids.new_message.clear()
         self.ids.new_message.grab_focus()
 
-    def _on_new_message(self, message):
+    def _on_message_received(self, message):
         messages = self.ids.messages
         messages.text += f"\n{message}" if messages.text else message
 
@@ -55,7 +54,7 @@ class ClientApp(App):
     def build(self):
         ui = ClientUI()
 
-        self.message_handler.callback = ui._on_new_message
+        self.message_handler.callback = ui._on_message_received
         self.message_handler.start()
 
         Window.bind(on_request_close=self._on_request_close)
