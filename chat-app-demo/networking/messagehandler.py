@@ -1,11 +1,16 @@
 from . import constants, utils
+from .commands import Commands
 
 import threading
+import random
 
 class MessageHandler(threading.Thread):
     def __init__(self, connection):
         super().__init__()
         self.connection = connection
+        self.username = f"user{random.randint(1000, 10000)}"
+
+        utils.send(connection, Commands.SIGN_IN, self.username)
 
     def start(self):
         self.running = True
@@ -15,21 +20,28 @@ class MessageHandler(threading.Thread):
         self.running = False
 
         try:
-            utils.send(self.connection, "quit", sender="default")
+            utils.send(self.connection, Commands.QUIT, self.username)
         finally:
             self.join()
 
     def send(self, message):
-        utils.send(self.connection, "global_message", sender="default", message=message)
+        utils.send(self.connection, Commands.GLOBAL_MESSAGE, self.username, message=message)
 
     def run(self):
         while self.running:
             try:
                 metadata = utils.receive(self.connection)
-                message = metadata.message if metadata else ""
+
+                # if not metadata:
+                    # self.connection.connect((constants.ADDRESS, constants.PORT))
+                if not metadata:
+                    continue
+
+                message = metadata.message
+                sender = metadata.parameters[0]
 
                 if message and hasattr(self, "callback"):
-                    self.callback(message)
+                    self.callback(sender, message)
 
             except Exception as e:
                 print("Broken connection: ", self.connection)

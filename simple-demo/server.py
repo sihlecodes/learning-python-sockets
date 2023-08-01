@@ -16,4 +16,4 @@ try:
         connection.close()
 
 finally:
-    server.close()    
+    server.close()

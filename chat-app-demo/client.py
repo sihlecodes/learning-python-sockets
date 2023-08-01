@@ -35,8 +35,10 @@ class ClientUI(BoxLayout):
         self.ids.new_message.clear()
         self.ids.new_message.grab_focus()
 
-    def _on_message_received(self, message):
+    def _on_message_received(self, sender, message):
         messages = self.ids.messages
+        message = f"{sender}: {message}"
+
         messages.text += f"\n{message}" if messages.text else message
 
 class ClientApp(App):
