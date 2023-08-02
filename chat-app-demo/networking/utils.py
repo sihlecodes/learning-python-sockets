@@ -7,7 +7,7 @@ class Metadata:
         self.message = message
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({', '.join(map(str, [self.command, self.parameters, self.message]))})"
+        return f"{self.__class__.__name__}({self.command}, {self.parameters}, {self.message})"
 
 def send(connection, command, *args, **kwargs) -> bytes | None:
     if not command:

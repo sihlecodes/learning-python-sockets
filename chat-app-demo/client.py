@@ -3,16 +3,12 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 
 from networking import constants
 from networking.messagehandler import MessageHandler
 
 import socket
-import random
-import time
-import threading
 
 class CustomTextInput(TextInput):
     def _grab_focus(self, *args):
@@ -37,7 +33,7 @@ class ClientUI(BoxLayout):
 
     def _on_message_received(self, sender, message):
         messages = self.ids.messages
-        message = f"{sender}: {message}"
+        message = f"[b][color=#6495ED]{sender}[/color][/b]: {message}"
 
         messages.text += f"\n{message}" if messages.text else message
 

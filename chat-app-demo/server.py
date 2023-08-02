@@ -3,7 +3,6 @@ from networking.commands import Commands
 
 import socket
 import threading
-import time
 
 class MessageDelegater:
     def __init__(self):
@@ -61,15 +60,7 @@ class ClientHandler(threading.Thread):
 
     def stop(self):
         self.running = False
-
         self.join()
-        return
-        while True:
-            try:
-                self.join()
-                break
-            except:
-                print("not breaking")
 
     def run(self):
         print("[NEW CONNECTION]:", self.address)

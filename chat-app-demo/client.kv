@@ -1,18 +1,5 @@
 #:import ScrollEffect kivy.effects.scroll.ScrollEffect
 
-<CustomLabel>:
-    height: 40
-    size_hint_y: None
-    text: "Hello, world!"
-
-<DebuggingLabel@Label>:
-    background_color: 1, 1, 1, 1
-    canvas.before:
-        Color:
-            rgba: root.background_color
-        Rectangle:
-            size: self.size
-            pos: self.pos
 <ClientUI>:
     orientation: "vertical"
 
@@ -22,13 +9,12 @@
         size_hint_y: 0.95
         effect_cls: ScrollEffect
 
-        DebuggingLabel:
+        Label:
             id: messages
             padding: (5, 5)
             size_hint: None, None
             line_height: 1.4
-            background_color: 0.5, 0.5, 0, 1
-            halign: "left"
+            markup: True
             size: self.texture_size
 
     BoxLayout:
@@ -37,7 +23,6 @@
 
         CustomTextInput:
             id: new_message
-            # text: "Save"
             valign: "middle"
             multiline: False
             size_hint_x: 0.8
