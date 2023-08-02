@@ -24,7 +24,6 @@ def send(connection, command, *args, **kwargs) -> bytes | None:
 
 def receive(connection) -> Metadata:
     header: str = connection.recv(constants.HEADER_LENGTH).decode(constants.FORMAT).strip()
-    print(header)
 
     if not header:
         return
