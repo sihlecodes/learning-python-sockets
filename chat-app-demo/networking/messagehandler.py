@@ -18,11 +18,7 @@ class MessageHandler(threading.Thread):
 
     def stop(self):
         self.running = False
-
-        try:
-            utils.send(self.connection, Commands.QUIT, self.username)
-        finally:
-            self.join()
+        utils.send(self.connection, Commands.QUIT, self.username)
 
     def send(self, message):
         utils.send(self.connection, Commands.GLOBAL_MESSAGE, self.username, message=message)
@@ -31,21 +27,17 @@ class MessageHandler(threading.Thread):
         while self.running:
             try:
                 metadata = utils.receive(self.connection)
+            except OSError:
+                break
 
-                # if not metadata:
-                    # self.connection.connect((constants.ADDRESS, constants.PORT))
-                if not metadata:
-                    continue
+            if not metadata:
+                continue
 
-                message = metadata.message
-                sender = metadata.parameters[0]
+            message = metadata.message
+            sender = metadata.parameters[0]
 
-                if message and hasattr(self, "callback"):
-                    self.callback(sender, message)
-
-            except Exception as e:
-                print("Broken connection: ", self.connection)
-                self.stop()
+            if message and hasattr(self, "callback"):
+                self.callback(sender, message)
 
 if __name__ == "__main__":
     import socket

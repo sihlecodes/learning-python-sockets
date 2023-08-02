@@ -60,15 +60,15 @@ class ClientHandler(threading.Thread):
 
     def stop(self):
         self.running = False
-        self.join()
 
     def run(self):
         print("[NEW CONNECTION]:", self.address)
 
-        with self.connection:
-            while self.running:
-                metadata = utils.receive(self.connection)
-                self._handle_request(metadata)
+        while self.running:
+            metadata = utils.receive(self.connection)
+            self._handle_request(metadata)
+
+        print("Connection terminated")
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((constants.ADDRESS, constants.PORT))

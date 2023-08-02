@@ -5,7 +5,8 @@ from kivy.core.window import Window
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.textinput import TextInput
 
-from networking import constants
+from networking import constants, utils
+from networking.commands import Commands
 from networking.messagehandler import MessageHandler
 
 import socket
@@ -66,4 +67,6 @@ if __name__ == '__main__':
         app = ClientApp(connection)
         app.run()
     finally:
+        # send quit request to server
+        utils.send(connection, Commands.QUIT, app.message_handler.username)
         connection.close()
