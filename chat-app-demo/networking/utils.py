@@ -34,8 +34,17 @@ def receive(connection) -> Metadata:
         raise Exception("Bad data format")
 
     command: str = parameters.pop(0)
-    length:  int = int(parameters.pop())
-    message: str = connection.recv(length).decode(constants.FORMAT)
+    remaining_length:  int = int(parameters.pop())
+    message: str = ""
+
+    while remaining_length > 0:
+        length = remaining_length
+
+        if remaining_length > constants.CHUNK_SIZE:
+            length = constants.CHUNK_SIZE
+
+        message += connection.recv(length).decode(constants.FORMAT)
+        remaining_length -= length
 
     return Metadata(command, parameters, message)
 
