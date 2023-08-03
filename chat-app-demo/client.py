@@ -4,6 +4,7 @@ from kivy.core.window import Window
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.textinput import TextInput
+from kivy.utils import hex_colormap
 
 from networking import constants, utils
 from networking.commands import Commands
@@ -22,19 +23,28 @@ class CustomTextInput(TextInput):
         self.text = ""
 
 class ClientUI(BoxLayout):
+    def __init__(self):
+        super().__init__()
+        self.app = App.get_running_app()
+
     def _on_enter_pressed(self, *args):
         self.ids.send.trigger_action(0.1)
 
     def _on_send_pressed(self, message):
-        app = App.get_running_app()
-        app.send(message)
+        self.app.send(message)
 
         self.ids.new_message.clear()
         self.ids.new_message.grab_focus()
 
     def _on_message_received(self, sender, message):
         messages = self.ids.messages
-        message = f"[b][color=#6495ED]{sender}[/color][/b]: {message}"
+
+        if sender == self.app.message_handler.username:
+            sender = f"[color={hex_colormap['tomato']}]You"
+        else:
+            sender = f"[color={hex_colormap['cornflowerblue']}]{sender}"
+
+        message = f"[b]{sender}[/color][/b]: {message}"
 
         messages.text += f"\n{message}" if messages.text else message
 
