@@ -9,21 +9,23 @@ from threading import Thread
 class ESSocket:
     __timeout = 100
     __encoding = "utf-8"
+    __chunk_size = 2048
 
     def __init__(self, *args, **kwargs):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.__events = []
         self.__event_handlers = {}
         self.__is_alive = True
         self.__message_thread = Thread(target=self.__handle_incoming_messaages)
         self.__message_thread.start()
 
-        # TODO: decide whether this second thread should exist or not
-        self.__event_thread = Thread(target=self.__handle_events)
-        self.__event_thread.start()
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_value, trace):
+        self.close()
 
     def _register_event(self, event: str, *args, **kwargs):
-        self.__events.append(event)
+        self.__handle_event(event, *args, **kwargs)
 
     def _register_event_handler(self, event: str, event_handler: function):
         self.__event_handlers[event] = event_handler
@@ -34,25 +36,22 @@ class ESSocket:
     def on(self, event: str, event_handler: function):
         self._register_event_handler(event, event_handler)
 
-    def __handle_events(self):
-        while self.__is_alive:
-            if len(self.__events) == 0:
-                time.sleep(ESSocket.__timeout)
-                continue
+    def close():
+        pass
 
-            event, args, kwargs = self.__events.pop(0)
-
-            if event in self.__event_handlers:
-                self.__event_handlers[event](*args, **kwargs)
-
+    def __handle_event(self, event, *args, **kwargs):
+        if event in self.__event_handlers:
+            self.__event_handlers[event](*args, **kwargs)
 
     def __handle_incoming_messaages(self, client: socket.socket):
-        # TODO: handle client messages
-        pass
+        # TODO: handle complete reading
+        while self.__is_alive:
+            data = client.recv(self.__chunk_size)
+            break
 
 class ESServer(ESSocket):
     def _emit_self(self, event: str, *args: list, **kwargs: dict):
-        self._register_event(self, event, *args, **kwargs)
+        self._register_event(event, *args, **kwargs)
 
     def emit_on(self, client: socket.socket, event: str, *args: list, **kwargs: dict):
         data = pickle.dumps([event, args, kwargs])
