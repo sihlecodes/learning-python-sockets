@@ -12,3 +12,4 @@ server.on("connection", _on_client_connection) # emitted internally
 server.on("disconnect", _on_client_disconnect) # emitted internally
 
 server.emit("do_the_thing") # user defined event signal
+server.close()
