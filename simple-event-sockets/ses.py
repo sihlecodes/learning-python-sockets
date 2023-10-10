@@ -16,38 +16,48 @@ class ESSocket:
         self.__event_handlers = {}
         self.__is_alive = True
         self.__message_thread = Thread(target=self.__handle_incoming_messaages)
-        self.__message_thread.start()
+        # self.__message_thread.start()
 
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self, exc_type, exc_value, trace):
         self.close()
 
-    def _register_event(self, event: str, *args, **kwargs):
-        self.__handle_event(event, *args, **kwargs)
-
-    def _register_event_handler(self, event: str, event_handler: function):
+    def _register_event_handler(self, event: str, event_handler: callable):
         self.__event_handlers[event] = event_handler
 
     def emit(self, event: str, *args: list, **kwargs: dict):
-        self.socket.send(pickle.dumps([event, args, kwargs]).encode(ESSocket.__encoding))
+        data = pickle.dumps([event, args, kwargs])
+        self.socket.send(data.encode(ESSocket.__encoding))
 
-    def on(self, event: str, event_handler: function):
+    def on(self, event: str, event_handler: callable):
         self._register_event_handler(event, event_handler)
 
-    def close():
-        pass
+    def close(self):
+        self.__is_alive = False
+        self.socket.close()
 
     def __handle_event(self, event, *args, **kwargs):
         if event in self.__event_handlers:
             self.__event_handlers[event](*args, **kwargs)
 
+    # TODO: decide whether the client parameter is necessary
     def __handle_incoming_messaages(self, client: socket.socket):
-        # TODO: handle complete reading
+        # TODO: test
         while self.__is_alive:
             data = client.recv(self.__chunk_size)
-            break
+
+            if data:
+                try:
+                    data = pickle.loads(data)
+
+                    if len(data) == 3:
+                        event, args, kwargs = data
+                        self.__handle_event(event, *args, **kwargs)
+
+                except pickle.UnpicklingError:
+                    continue
 
 class ESServer(ESSocket):
     def _emit_self(self, event: str, *args: list, **kwargs: dict):
@@ -55,7 +65,7 @@ class ESServer(ESSocket):
 
     def emit_on(self, client: socket.socket, event: str, *args: list, **kwargs: dict):
         data = pickle.dumps([event, args, kwargs])
-        client.send(data)
+        client.send(data.encode(ESServer.__encoding))
 
 class ESClient(ESSocket):
     pass
