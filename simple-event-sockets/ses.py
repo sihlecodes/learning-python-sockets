@@ -5,16 +5,17 @@ import time
 from threading import Thread
 
 # TODO: decide on how client emits should be handled compared to server emits
+# TODO: make __clients retry connections on each __timeout until program calls .close()
 
 class ESSocket:
-    __timeout = 100
     __encoding = "utf-8"
     __chunk_size = 2048
 
-    def __init__(self, host, port, *args, **kwargs):
+    def __init__(self, host, port, **kwargs):
         self.host = host
         self.port = port
         self.verbose = kwargs.get('verbose', False)
+        self.timeout = kwargs.get('timeout', 100)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.__event_handlers = {}
@@ -24,17 +25,21 @@ class ESSocket:
         return self
 
     def __exit__(self, exc_type, exc_value, trace):
-        self.close()
+        pass
+        # self.close()
 
     def _register_event_handler(self, event: str, event_handler: callable):
         self.__event_handlers[event] = event_handler
 
     def emit(self, event: str, *args: list, **kwargs: dict):
         data = pickle.dumps([event, args, kwargs])
-        self.socket.send(data.encode(ESSocket.__encoding))
+        self.socket.send(data)
 
     def on(self, event: str, event_handler: callable):
         self._register_event_handler(event, event_handler)
+
+    def is_alive(self):
+        return self.__is_alive
 
     def close(self):
         self.__is_alive = False
@@ -50,12 +55,10 @@ class ESSocket:
 
         # return has_event_handler
 
-    def __handle_incoming_messaages(self, client: socket.socket):
-        # TODO: test
+    def _handle_incoming_messaages(self, client: socket.socket):
         while self.__is_alive:
-            data = client.recv(self.__chunk_size)
-
             try:
+                data = client.recv(ESSocket.__chunk_size)
                 data = pickle.loads(data)
 
                 if len(data) == 3:
@@ -65,12 +68,16 @@ class ESSocket:
             except pickle.UnpicklingError:
                 continue
 
+            except ConnectionResetError:
+                break
+
 class ESServer(ESSocket):
     def __init__(self, host, port):
         super().__init__(host, port)
-
+        self.__clients = []
         self.socket.bind((host, port))
-        Thread(target=self.__handle_connections).start()
+
+        Thread(target=self._handle_connections, args=(self.socket,)).start()
 
     def _emit_self(self, event: str, *args: list, **kwargs: dict):
         self._register_event(event, *args, **kwargs)
@@ -79,15 +86,21 @@ class ESServer(ESSocket):
         data = pickle.dumps([event, args, kwargs])
         client.send(data.encode(ESServer.__encoding))
 
-    def __handle_connections(self, server: socket.socket):
+    def emit(self, event: str, *args: list, **kwargs: dict):
+        for client in self.__clients:
+            self.emit_on(client, event, *args, **kwargs)
+
+    def _handle_connections(self, server: socket.socket):
         threads = []
 
-        while self.__is_alive:
+        while self.is_alive():
             server.listen()
 
             client, _ = server.accept()
+            self.__clients.append(client)
+            print("client connected")
 
-            thread = Thread(target=self.__handle_incoming_messaages, args=(client,))
+            thread = Thread(target=self._handle_incoming_messaages, args=(client,))
             thread.start()
 
             threads.append(thread)
@@ -96,5 +109,15 @@ class ESClient(ESSocket):
     def __init__(self, host, port):
         super().__init__(host, port)
 
-        self.socket.connect((host, port))
-        Thread(target=self.__handle_incoming_messaages, args=(self.socket,)).start()
+        self._establish_connection(host, port)
+        Thread(target=self._handle_incoming_messaages, args=(self.socket,)).start()
+
+    def _establish_connection(self, host, port):
+        try:
+            self.socket.connect((host, port))
+            print("connection established")
+        except ConnectionRefusedError:
+            if self.is_alive():
+                print("connection failed, trying again")
+                time.sleep(self.timeout)
+                self._establish_connection(host, port)
